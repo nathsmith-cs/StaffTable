@@ -7,7 +7,7 @@ const User = require("../models/User");
 // REGISTER route (create new user)
 router.post("/register", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, isOwner, name } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
@@ -25,6 +25,8 @@ router.post("/register", async (req, res) => {
         const user = new User({
             email,
             password: hashedPassword,
+            isOwner: isOwner || false, // Default to false if not provided
+            name: name || "",
         });
 
         await user.save();
@@ -34,6 +36,7 @@ router.post("/register", async (req, res) => {
             message: "User created successfully",
         });
     } catch (error) {
+        console.error("Register error:", error);
         res.status(500).json({
             success: false,
             message: "Server error",
@@ -64,10 +67,15 @@ router.post("/login", async (req, res) => {
             });
         }
 
-        // Create JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
-        });
+        // Create JWT token (include isOwner in the token payload)
+        const token = jwt.sign(
+            {
+                userId: user._id,
+                isOwner: user.isOwner, // Include isOwner in token
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
 
         res.json({
             success: true,
@@ -76,9 +84,12 @@ router.post("/login", async (req, res) => {
             user: {
                 id: user._id,
                 email: user.email,
+                name: user.name,
+                isOwner: user.isOwner, // Send isOwner status to frontend
             },
         });
     } catch (error) {
+        console.error("Login error:", error);
         res.status(500).json({
             success: false,
             message: "Server error",

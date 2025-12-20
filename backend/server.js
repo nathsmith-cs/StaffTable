@@ -1,28 +1,39 @@
-// 1. Import packages
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const dotenv = require("dotenv");
 
-// 2. Initialize Express
+dotenv.config();
+
+const authRoutes = require("./routes/auth");
+const shiftRoutes = require("./routes/shifts"); // ADD THIS LINE
+
 const app = express();
 
-// 3. Middleware
 app.use(cors());
 app.use(express.json());
 
-// 4. Connect to MongoDB
 mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(() => console.log("MongoDB connected"))
-    .catch((err) => console.error("MongoDB error:", err));
+    .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/stafftable")
+    .then(() => console.log("✅ MongoDB connected successfully"))
+    .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// 5. Import and use routes
-const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
+app.use("/api/shifts", shiftRoutes); // ADD THIS LINE
 
-// 6. Start server
-const PORT = process.env.PORT;
+app.get("/api/health", (req, res) => {
+    res.json({ status: "Server is running!" });
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        message: "Something went wrong on the server!",
+    });
+});
+
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

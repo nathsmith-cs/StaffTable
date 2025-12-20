@@ -11,6 +11,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    isOwner: {
+        type: Boolean,
+        default: false, // By default, users are not owners (they're employees)
+    },
+    name: {
+        type: String,
+        required: false,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
