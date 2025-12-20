@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "./logo.svg";
+import API_URL from "./config";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -14,16 +15,13 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(
-                "http://localhost:5001/api/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ email, password }),
-                }
-            );
+            const response = await fetch(`${API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
             const data = await response.json();
 

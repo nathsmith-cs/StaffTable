@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "./logo.svg";
+import API_URL from "./config";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -91,7 +92,7 @@ export default function Dashboard() {
             const endDate = weekEnd.toISOString().split("T")[0];
 
             const response = await fetch(
-                `http://localhost:5001/api/shifts/week?startDate=${startDate}&endDate=${endDate}`,
+                `${API_URL}/api/shifts/week?startDate=${startDate}&endDate=${endDate}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -163,7 +164,7 @@ export default function Dashboard() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await fetch("http://localhost:5001/api/shifts", {
+            const response = await fetch(`${API_URL}/api/shifts`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -209,15 +210,12 @@ export default function Dashboard() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await fetch(
-                `http://localhost:5001/api/shifts/${shiftId}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await fetch(`${API_URL}/api/shifts/${shiftId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             const data = await response.json();
 
@@ -757,7 +755,15 @@ export default function Dashboard() {
                                         style={styles.formSelect}
                                     >
                                         <option value="Server">Server</option>
-                                        <option value="Busser">Busser</option>
+                                        <option value="Cook">Cook</option>
+                                        <option value="Bartender">
+                                            Bartender
+                                        </option>
+                                        <option value="Host">Host</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="Dishwasher">
+                                            Dishwasher
+                                        </option>
                                     </select>
                                 </div>
 
