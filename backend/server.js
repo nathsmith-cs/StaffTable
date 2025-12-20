@@ -13,7 +13,7 @@ const app = express();
 // UPDATED CORS SECTION - REPLACES app.use(cors());
 const allowedOrigins = [
     "http://localhost:3000",
-    "https://your-frontend-name.onrender.com", // Update after deploying frontend
+    "https://stafftables.onrender.com", // Update after deploying frontend
 ];
 
 app.use(
