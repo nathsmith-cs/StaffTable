@@ -2,19 +2,24 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const { getUserModel } = require("../config/dbconnection");
+const { extractLocation } = require("../middleware/locationMiddleware");
 
 // REGISTER route (create new user)
-router.post("/register", async (req, res) => {
+router.post("/register", extractLocation, async (req, res) => {
     try {
         const { email, password, isOwner, name } = req.body;
+        const location = req.location;
 
-        // Check if user already exists
+        // Get User model for this location
+        const User = getUserModel(location);
+
+        // Check if user already exists in this location's database
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: "User already exists",
+                message: "User already exists at this location",
             });
         }
 
@@ -25,7 +30,7 @@ router.post("/register", async (req, res) => {
         const user = new User({
             email,
             password: hashedPassword,
-            isOwner: isOwner || false, // Default to false if not provided
+            isOwner: isOwner || false,
             name: name || "",
         });
 
@@ -45,11 +50,15 @@ router.post("/register", async (req, res) => {
 });
 
 // LOGIN route (check credentials)
-router.post("/login", async (req, res) => {
+router.post("/login", extractLocation, async (req, res) => {
     try {
         const { email, password } = req.body;
+        const location = req.location;
 
-        // Find user by email
+        // Get User model for this location
+        const User = getUserModel(location);
+
+        // Find user by email in this location's database
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({
@@ -67,11 +76,12 @@ router.post("/login", async (req, res) => {
             });
         }
 
-        // Create JWT token (include isOwner in the token payload)
+        // Create JWT token (include location and isOwner in the token payload)
         const token = jwt.sign(
             {
                 userId: user._id,
-                isOwner: user.isOwner, // Include isOwner in token
+                location: location,
+                isOwner: user.isOwner,
             },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
@@ -85,7 +95,8 @@ router.post("/login", async (req, res) => {
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                isOwner: user.isOwner, // Send isOwner status to frontend
+                isOwner: user.isOwner,
+                location: location,
             },
         });
     } catch (error) {

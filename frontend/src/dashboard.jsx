@@ -18,6 +18,16 @@ export default function Dashboard() {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const isOwner = user.isOwner || false;
 
+    // Get selected location
+    const locationMap = {
+        becker: "Il Bosco - Becker",
+        tempe: "Il Bosco - Tempe",
+        downtown: "Il Bosco - Downtown",
+        "north-scottsdale": "Il Bosco - North Scottsdale",
+    };
+    const selectedLocation = localStorage.getItem("selectedLocation") || "";
+    const locationName = locationMap[selectedLocation] || "Location Not Set";
+
     // New shift form state
     const [newShift, setNewShift] = useState({
         date: "",
@@ -152,7 +162,8 @@ export default function Dashboard() {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/login");
+        localStorage.removeItem("selectedLocation");
+        navigate("/");
     };
 
     // Handle shift creation
@@ -307,7 +318,10 @@ export default function Dashboard() {
                             alt="StaffTable"
                             style={styles.logoImage}
                         />
-                        <h1 style={styles.logoText}>StaffTable</h1>
+                        <div>
+                            <h1 style={styles.logoText}>StaffTable</h1>
+                            <p style={styles.locationText}>{locationName}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -755,15 +769,7 @@ export default function Dashboard() {
                                         style={styles.formSelect}
                                     >
                                         <option value="Server">Server</option>
-                                        <option value="Cook">Cook</option>
-                                        <option value="Bartender">
-                                            Bartender
-                                        </option>
-                                        <option value="Host">Host</option>
-                                        <option value="Manager">Manager</option>
-                                        <option value="Dishwasher">
-                                            Dishwasher
-                                        </option>
+                                        <option value="Busser">Busser</option>
                                     </select>
                                 </div>
 
@@ -1041,6 +1047,13 @@ const styles = {
         fontWeight: 700,
         color: "#1a1a1a",
         fontFamily: "'Newsreader', serif",
+    },
+    locationText: {
+        fontSize: "0.75rem",
+        fontWeight: 500,
+        color: "#6b7280",
+        marginTop: "0.25rem",
+        letterSpacing: "0.02em",
     },
     nav: {
         padding: "1.5rem 1rem",

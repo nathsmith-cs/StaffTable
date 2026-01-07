@@ -15,12 +15,21 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
+            // Get selected location from localStorage
+            const location = localStorage.getItem("selectedLocation");
+
+            if (!location) {
+                alert("Please select a location first");
+                navigate("/");
+                return;
+            }
+
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, location }),
             });
 
             const data = await response.json();

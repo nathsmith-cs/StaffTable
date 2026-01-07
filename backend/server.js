@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
@@ -10,16 +9,14 @@ const shiftRoutes = require("./routes/shifts");
 
 const app = express();
 
-// UPDATED CORS SECTION - REPLACES app.use(cors());
 const allowedOrigins = [
     "http://localhost:3000",
-    "https://stafftables.onrender.com", // Update after deploying frontend
+    process.env.FRONTEND_URL || "https://stafftables.onrender.com",
 ];
 
 app.use(
     cors({
         origin: function (origin, callback) {
-            // Allow requests with no origin (mobile apps, Postman, etc)
             if (!origin) return callback(null, true);
 
             if (allowedOrigins.includes(origin)) {
@@ -31,14 +28,11 @@ app.use(
         credentials: true,
     })
 );
-// END OF UPDATED CORS SECTION
 
 app.use(express.json());
 
-mongoose
-    .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/stafftable")
-    .then(() => console.log("✅ MongoDB connected successfully"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
+// Multi-location database is configured in dbConnection.js
+console.log("✅ Multi-location database configuration loaded");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/shifts", shiftRoutes);

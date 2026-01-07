@@ -1,34 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const Shift = require("../models/Shift");
-const jwt = require("jsonwebtoken");
+const { getShiftModel } = require("../config/dbconnection");
+const { authenticateToken } = require("../middleware/locationMiddleware");
 
-// Middleware to verify JWT token
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if (!token) {
-        return res
-            .status(401)
-            .json({ success: false, message: "Access token required" });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res
-                .status(403)
-                .json({ success: false, message: "Invalid token" });
-        }
-        req.user = user;
-        next();
-    });
-};
+// All shift routes require authentication
+// The authenticateToken middleware extracts location from the JWT token
 
 // GET shifts for a date range (week view)
 router.get("/week", authenticateToken, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
+        const location = req.location;
 
         if (!startDate || !endDate) {
             return res.status(400).json({
@@ -36,6 +18,9 @@ router.get("/week", authenticateToken, async (req, res) => {
                 message: "Start date and end date are required",
             });
         }
+
+        // Get Shift model for this location
+        const Shift = getShiftModel(location);
 
         const shifts = await Shift.find({
             date: {
@@ -61,12 +46,16 @@ router.get("/week", authenticateToken, async (req, res) => {
 router.get("/date/:date", authenticateToken, async (req, res) => {
     try {
         const { date } = req.params;
+        const location = req.location;
 
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
+
+        // Get Shift model for this location
+        const Shift = getShiftModel(location);
 
         const shifts = await Shift.find({
             date: {
@@ -93,6 +82,7 @@ router.post("/", authenticateToken, async (req, res) => {
     try {
         const { date, startTime, endTime, employeeName, role, notes } =
             req.body;
+        const location = req.location;
 
         // Validation
         if (!date || !startTime || !endTime || !employeeName || !role) {
@@ -101,6 +91,9 @@ router.post("/", authenticateToken, async (req, res) => {
                 message: "All required fields must be provided",
             });
         }
+
+        // Get Shift model for this location
+        const Shift = getShiftModel(location);
 
         const shift = new Shift({
             date: new Date(date),
@@ -134,6 +127,10 @@ router.put("/:id", authenticateToken, async (req, res) => {
         const { id } = req.params;
         const { date, startTime, endTime, employeeName, role, notes } =
             req.body;
+        const location = req.location;
+
+        // Get Shift model for this location
+        const Shift = getShiftModel(location);
 
         const shift = await Shift.findById(id);
 
@@ -172,6 +169,10 @@ router.put("/:id", authenticateToken, async (req, res) => {
 router.delete("/:id", authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
+        const location = req.location;
+
+        // Get Shift model for this location
+        const Shift = getShiftModel(location);
 
         const shift = await Shift.findByIdAndDelete(id);
 
